@@ -259,7 +259,7 @@ def tsk_recover_files(fs_list, path):
 
 		rec_cmd = "sudo tsk_recover -e " + i + ".dd " + path + dir_make
 		#print(rec_cmd)
-		#os.system(rec_cmd)
+		os.system(rec_cmd)
 		
 		
 
