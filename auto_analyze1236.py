@@ -5,17 +5,17 @@ import os
 import pathlib
 from Registry import Registry
 
-# contains path to the index of browser artefacts in different operating systems 
-browser_artefact_map = {"Windows XP": 
-["/Local Settings/Temporary Internet Files/Content.IE5/", 
-"/Cookies/", "/Local Settings/History/history.IE5/", 
-"/Application Data/Mozilla/Firefox/Profiles/", 
-"/Application Data/Apple Computer/Safari/History.plist", 
+# contains path to the index of browser artefacts in different operating systems
+browser_artefact_map = {"Windows XP":
+["/Local Settings/Temporary Internet Files/Content.IE5/",
+"/Cookies/", "/Local Settings/History/history.IE5/",
+"/Application Data/Mozilla/Firefox/Profiles/",
+"/Application Data/Apple Computer/Safari/History.plist",
 "/Local Settings/Application Data/Apple Computer/Safari/History.plist",
 "/Application Data/Opera/Opera/",
 "/Local Settings/Application Data/Google/Chrome/User Data/Default/Preferences"],
 
-"Linux": 
+"Linux":
 ["/.mozilla/firefox/",
 "/.opera/",
 "/.config/google-chrome/Default/Preferences"],
@@ -30,10 +30,10 @@ browser_artefact_map = {"Windows XP":
 
 }
 
-# takes mount which is path to the mounted disk and path is the 
+# takes mount which is path to the mounted disk and path is the
 # destination where the "software" and "system" registry files
-# have to be copied. This function copies the registry files to the 
-# directory of the disk image 
+# have to be copied. This function copies the registry files to the
+# directory of the disk image
 def getRegistry(mount, path):
 
 	# mount point + default path of registry files on windows
@@ -53,14 +53,14 @@ def check_file(path, image_path):
 	path = format_strings(path)
 	suppress_output = ">/dev/null 2>&1"
 
-	# check if path contains .IE5 in its path belonging to IE explorer 
+	# check if path contains .IE5 in its path belonging to IE explorer
 	if((path.find(".IE5")) != -1):
 
 		# this command gets the list of folders in the path
 		command = "ls " + path
 		try:
 			op = subprocess.check_output(command, shell = True)
-		except:	
+		except:
 			return
 
 		op_list = op.split("\n")
@@ -73,7 +73,7 @@ def check_file(path, image_path):
 
 				# append the folder to the path
 				new_path = path + i
-				command = "cp " + new_path + " " + image_path	
+				command = "cp " + new_path + " " + image_path
 				os.system(command + suppress_output)
 
 	# check if path belongs to firefox directory
@@ -82,7 +82,7 @@ def check_file(path, image_path):
 		# get list of folders in the path
 		command = "ls " + path
 		try:
-			op = subprocess.check_output(command, shell = True)
+			op = subprocess.check_output(command,shell = True)
 		except:
 			return
 
@@ -96,11 +96,11 @@ def check_file(path, image_path):
 
 				new_path = path + i + "/places.sqlite"
 				command = "cp " + new_path + " " + image_path
-				os.system(command + suppress_output)		
-			
+				os.system(command + suppress_output)
+
 	# if the path does not belong to IE explorer or firefox copy file
 	# specified in the path to the disk directory
-	command = "cp " + path + " " + image_path	
+	command = "cp " + path + " " + image_path
 	os.system(command + suppress_output)
 
 # takes the "path" appends the path from the map based on the "os_ver" and calls
@@ -114,18 +114,18 @@ def append_uri(path, os_ver, image_path):
 		path_uri = path + i
 		formatted_path = path_uri
 		check_file(formatted_path, image_path)
-		
-# check for the os version of the disk image mounted at "temp_mount" and 
+
+# check for the os version of the disk image mounted at "temp_mount" and
 # creates a path based on the os_ver and call another function for
 # further processing
 def available_paths(temp_mount, image_path):
-	
+
 	# initial path based on os versions
-	init_path = {"Windows XP": "/Documents and Settings/", 
+	init_path = {"Windows XP": "/Documents and Settings/",
 	"Windows": "C:/Users/", "Linux": "/home/"}
 
 	# get os_ver through registry parsing
-	os_ver = get_OS_version(temp_mount) 
+	os_ver = get_OS_version(temp_mount)
 
 	#gets the first part of the path from init_path based on the os version
 	# and appends it to the temp_mount
@@ -139,14 +139,14 @@ def available_paths(temp_mount, image_path):
 
 	op_list = op.split("\n")
 
-	# loops through each folder and call append_uri for further 
+	# loops through each folder and call append_uri for further
 	# processing
 	for i in op_list:
 		new_path = path_perma + i
 		append_uri(new_path, os_ver, image_path)
 
 # this function replaces spaces in the path with "\\"" since spaces in os.system
-# command considers spaces as seperate commands 
+# command considers spaces as seperate commands
 def format_strings(path):
 	return path.replace(" ", "\\ ")
 
@@ -173,7 +173,7 @@ def parse_win(path):
 	    print("Couldn't find Run key. Exiting...")
 	    sys.exit(-1)
 
-	# in the registry key object check for the value associated with 
+	# in the registry key object check for the value associated with
 	# "ProductName"
 	version = software_key.value("ProductName")
 
@@ -203,14 +203,14 @@ def get_OS_version(temp_mount):
 	# if image is windows the above command raises exception which means it is
 	# a windows image
 	except:
-		return parse_win(image_path) 
+		return parse_win(image_path)
 
 	return "Linux"
 
 # gets the path of the mount and processes it to obtain the ip address for win
 def get_win_ipos(image_path):
 
-	# holds path to system and software registry 
+	# holds path to system and software registry
 	system_registry_path = image_path + "/system"
 	software_registry_path = image_path + "/software"
 
@@ -234,15 +234,17 @@ def get_win_ipos(image_path):
 
 	# get the value associated with the "ProductName"
 	version = software_key.value("ProductName")
+	print '*****************************************************\n'
 	print ("OS Version: " + str(version.value()))
 
-	# for each of the subkeys within the "Interfaces" key 
+	# for each of the subkeys within the "Interfaces" key
 	# check for "DhcpIPAddress" name and print its value which is the IP address
 	for subkeys in system_key.subkeys():
 		for value in [v for v in subkeys.values()]:
 
 			if(value.name() == "DhcpIPAddress"):
 				print("IP Address: " + str(value.value()))
+	print '\n*****************************************************'
 
 # get the os version and IP address of a linux image
 def get_lin_ipos(image_path):
@@ -252,8 +254,10 @@ def get_lin_ipos(image_path):
 	os_cat = subprocess.check_output(command, shell = True)
 	os_cat_list = os_cat.split("\n")
 
+	print '*****************************************************\n'
 	print(str(os_cat_list[0]))
 	print(str(os_cat_list[1]))
+
 
 	# /sys/class/net contains the interface files which contain ip addresses
 	# of each interface. Get the list of interface using "ls"
@@ -267,6 +271,7 @@ def get_lin_ipos(image_path):
 		command2 = image_path + "/sbin/ip -o -4 addr list " + i + " | cut -d/ -f1"
 		IP = subprocess.check_output(command2, shell = True)
 		print(IP)
+	print '\n*****************************************************'
 
 # get the os version of the image in temp_mount and call respective functions
 def ip_OS_hostname(image_path, temp_mount):
@@ -280,9 +285,9 @@ def ip_OS_hostname(image_path, temp_mount):
 
 # extract allocated partitions from the disk image and output file system
 # information on each fs. "alloc_mmls" contains the mmls information of
-# allocated slots. "image_name" disk image name provided by the user. 
+# allocated slots. "image_name" disk image name provided by the user.
 def alloc_extract(alloc_mmls, image_name, volume, fstype_list):
-	
+
 	# get a list of allocated partitions
 	fs_list = alloc_mmls.split("\n")
 
@@ -296,10 +301,11 @@ def alloc_extract(alloc_mmls, image_name, volume, fstype_list):
 		try:
 			slot = int(i.split(":")[0])
 
+
 		except ValueError:
 			continue
 
-		
+
 		# create .dd with the slot name
 		fs_name = "slot" + str(slot)
 		dd_format = fs_name + ".dd"
@@ -321,7 +327,7 @@ def alloc_extract(alloc_mmls, image_name, volume, fstype_list):
 					offset = part.start
 					first_alloc_fs = False
 				# extract fsstat and store it in fsstat.txt file
-    			fs_command = "fsstat -o " + str(part.start) + " " + image_name + " > " + "slot" + str(slot) + "_fsstat.txt"
+				fs_command = "fsstat -o " + str(part.start) + " " + image_name + " > " + "slot" + str(slot) + "_fsstat.txt"
 
 				os.system(fs_command)
 
@@ -331,22 +337,20 @@ def alloc_extract(alloc_mmls, image_name, volume, fstype_list):
 # directory within the disk image directory
 def tsk_recover_files(fs_list, path):
 
-	print(fs_list, path)
-	
 	# loop through each fs and recover files into the /recovered_fs_files dir
 	for i in fs_list:
 
 		dir_make = "/recovered_" + i + "_files"
 		# make a directory at the disk image dir
 		dir_cmd = "sudo mkdir " + path + dir_make
-		
+
 		# use ">/dev/..." to suppress output
 		os.system(dir_cmd + ">/dev/null 2>&1")
 
 		rec_cmd = "sudo tsk_recover -e " + i + ".dd " + path + dir_make
 		os.system(rec_cmd)
-		
-		
+
+
 
 print('Please make sure this script is in the same directory as the disk image!')
 
@@ -365,7 +369,7 @@ image_name = image_name.rstrip()
 fs_list = []
 
 # Pathlib object for the path to the image
-image_directory = pathlib.Path(image_path) 
+image_directory = pathlib.Path(image_path)
 
 url = image_path + "/" + image_name
 
@@ -378,8 +382,9 @@ command3 = "mmls " + image_path + "/" + image_name + " > " + image_name + "_mmls
 os.system(command3)
 
 # mmls -a provides the allocated filesystems in the disk image
-command1 = "mmls -a " + image_path + "/" + image_name	
+command1 = "mmls -a " + image_path + "/" + image_name
 alloc_mmls = subprocess.check_output(command1, shell = True)
+
 
 # extract the fs info of the disk image and get the offset to the first fs
 offset = alloc_extract(alloc_mmls, image_name, volume, fs_list)
@@ -401,7 +406,7 @@ os.system(command1)
 # get the registry file to the current dir if the user wants to extract more info
 getRegistry(temp_mount, image_path)
 
-# gets the browser artefact 
+# gets the browser artefact
 available_paths(temp_mount, image_path)
 
 # prints the IP address and OS of the disk image

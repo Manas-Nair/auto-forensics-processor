@@ -35,7 +35,15 @@ def carve_images(partition_names, img_folder):
 		command = 'scalpel -c img.conf '+i+' -o '+folder
 		os.system(command)
 
-def extract_images(path):
+def generate_stringlists(partition_names):
+
+	for i in partition_names:
+		file_name = 'stringlist_partition'+i
+		command = 'strings -eS -td '+i+' > '+file_name
+		print command
+		os.system(command)
+
+def images_and_strings(path):
 	#Configure conf file for scalpel
 
 	conf_cmd = 'egrep "(gif|jpg)" /etc/scalpel/scalpel.conf | sed s/#//g > img.conf'
@@ -48,6 +56,7 @@ def extract_images(path):
 	os.system(remove_existing)
 
 	command = "mmls -a "+ path
+	print command
 	allocated_partitions = subprocess.check_output(command, shell = True)
 
 	partitions = alloc_nos(allocated_partitions)
@@ -55,7 +64,12 @@ def extract_images(path):
 	partition_names = carve_partitions(partitions, path)
 	print partition_names
 
+	print "Running Scalpel to Carve Images"
 	carve_images(partition_names, img_folder)
+
+	print "Generating String Lists"
+	generate_stringlists(partition_names)
+
 
 if len(sys.argv) != 2:
 	print 'Usage: python img_carve.py <Disk Image>'
@@ -63,5 +77,4 @@ else:
 	image_name = sys.argv[1]
 	pwd = os.getcwd()
 	path = pwd+'/'+image_name
-	extract_images(path)
-
+	images_and_strings(path)
